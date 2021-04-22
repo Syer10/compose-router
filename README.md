@@ -8,17 +8,18 @@
 
 ## What's this?
 
-Routing functionality for Jetpack Compose with back stack:
+Routing functionality for JetBrains Compose with back stack:
 
-- Helps to map your whole app structure using Compose — not just the UI parts
-- Supports a single-Activity approach — no Fragments, no Navigation component needed
+- Helps to map your whole application structure using Compose — not just the UI parts
+- Supports a single-Window approach — one Window, no Navigation component needed
 - Simply branch on current routing and compose any other @Composable
 - Back stack saves the history of routing
+- Desktop implementation of Android Bundle class used
 - Can be integrated with automatic back press handling to go back in screen history
 - Can be integrated with automatic scoped `savedInstanceState` persistence
 - Supports routing based on deep links (POC impl)
 
-Compatible with Compose version **1.0.0-beta01**
+Tested with JetBrains Compose version **0.4.0-build184**
 
 ## Sample apps
 
@@ -34,8 +35,9 @@ Compatible with Compose version **1.0.0-beta01**
 
 Available through jitpack.
 
-Add the maven repo to your root `build.gradle`
+Add the maven repo to your root `build.gradle(.kts)`
 
+Groovy:
 ```groovy
 allprojects {
     repositories {
@@ -43,11 +45,21 @@ allprojects {
     }
 }
 ```
-
+Kotlin:
+```kotlin
+repositories {
+    maven { url = uri("https://jitpack.io") }
+}
+```
 Add the dependency:
 
+Groovy:
 ```groovy
-implementation 'com.github.zsoltk:compose-router:{latest-version}'
+implementation 'com.github.syer10:compose-router:{latest-version}'
+```
+Kotlin:
+```kotlin
+implementation("com.github.syer10:compose-router:{latest-version}")
 ```
 
 ## How to use

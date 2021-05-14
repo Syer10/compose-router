@@ -3,8 +3,7 @@ name: Build & test
 on:
   push:
     branches:
-      - main
-      - snapshot
+      - master
     paths-ignore:
       - '**.md'
   pull_request:

@@ -106,12 +106,10 @@ fun main() {
         }
 
         window.show {
-            setContent {
-                Providers(
-                    LocalBackPressHandler provides backPressHandler
-                ) {
-                    // Your root composable goes here
-                }
+            Providers(
+                LocalBackPressHandler provides backPressHandler
+            ) {
+                // Your root composable goes here
             }
         }
     }

@@ -1,7 +1,7 @@
 # compose-router
 
 [![Build](https://github.com/zsoltk/compose-router/workflows/Build/badge.svg)](https://github.com/zsoltk/compose-router/actions)
-[![Version](https://jitpack.io/v/zsoltk/compose-router.svg)](https://jitpack.io/#zsoltk/compose-router)
+[![Version](https://jitpack.io/v/syer10/compose-router.svg)](https://jitpack.io/#syer10/compose-router)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
 ![logo](https://i.imgur.com/kKcAHa3.png)
@@ -21,45 +21,19 @@ Routing functionality for JetBrains Compose with back stack:
 
 Tested with JetBrains Compose version **0.4.0-build190**
 
-## Sample apps
+## Sample app
 
-1. **Sample module #1** - [app-lifelike](app-lifelike) — Displays a registration flow + logged in content with back stack
-
-2. **Sample module #2** - [app-nested-containers](app-nested-containers) — Displays nested screen history on generated levels.
-
-3. **Jetnews** - [fork](https://github.com/zsoltk/compose-samples) — Built with `compose-router`, adding proper screen history functionality.
-
-4. **Pokedex** - [compose-pokedex](https://github.com/zsoltk/compose-pokedex) — Using `compose-router` for app structure.
+**TachideskJUI** - [manga-reader](https://github.com/Suwayomi/TachideskJUI/) — Built with `compose-router`, adding proper screen history functionality.
 
 ## Download
 
-Available through jitpack.
-
-Add the maven repo to your root `build.gradle(.kts)`
-
 Groovy:
 ```groovy
-allprojects {
-    repositories {
-        maven { url 'https://jitpack.io' }
-    }
-}
+implementation 'ca.gosyer:compose-router:{latest-version}'
 ```
 Kotlin:
 ```kotlin
-repositories {
-    maven { url = uri("https://jitpack.io") }
-}
-```
-Add the dependency:
-
-Groovy:
-```groovy
-implementation 'com.github.syer10:compose-router:{latest-version}'
-```
-Kotlin:
-```kotlin
-implementation("com.github.syer10:compose-router:{latest-version}")
+implementation("ca.gosyer:compose-router:{latest-version}")
 ```
 
 ## How to use
@@ -117,26 +91,28 @@ Back stack operations:
 
 ## Connect it to back press event
 
-To ensure that back press automatically pops the back stack and restores history, add this to your Activity:
+To ensure that back press automatically pops the back stack and restores history, add this to your main function:
 
 ```kotlin
-class MainActivity : AppCompatActivity() {
-    private val backPressHandler = BackPressHandler()
+fun main() {
+    SwingUtilities.invokeLater {
+        val window = AppWindow(
+            title = "App name"
+        )
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            Providers(
-                LocalBackPressHandler provides backPressHandler
-            ) {
-                // Your root composable goes here
-            }
+        val backPressHandler = BackPressHandler()
+        window.keyboard.setShortcut(Key.Home) {
+            backPressHandler.handle()
         }
-    }
 
-    override fun onBackPressed() {
-        if (!backPressHandler.handle()) {
-            super.onBackPressed()
+        window.show {
+            setContent {
+                Providers(
+                    LocalBackPressHandler provides backPressHandler
+                ) {
+                    // Your root composable goes here
+                }
+            }
         }
     }
 }
@@ -180,37 +156,3 @@ fun Content() {
     }
 }
 ```
-
-## Routing from deep links
-
-_Note: this is even more of a proof-of-concept only implementation than the other parts._
-
-### Example 1
-
-Build and install `app-lifelike` on your device.
-
-Open a console and type:
-
-```
-adb shell 'am start -a "android.intent.action.VIEW" -d "app-lifelike://go-to-profile?name=fake&phone=123123"'
-```
-
-This will open `app-lifelike` with skipped registration flow and go directly to Profile screen with fake user:
-
-![](https://i.imgur.com/XomlkS3.png)
-
-### Example 2
-
-Build and install `app-nested-containers` on your device.
-
-Open a console and type:
-
-```
-adb shell 'am start -a "android.intent.action.VIEW" -d "app-nested://default/BGR"'
-```
-
-This will open `app-nested-containers` with (B)lue / (G)reen / (R)ed subtrees pre-selected as routing:
-
-![](https://i.imgur.com/d7agB8D.png)
-
-See `MainActivity.kt`, `AndroidManifest.xml`, and `DeepLink.kt` in both sample apps to see usage example.

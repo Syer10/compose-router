@@ -19,7 +19,7 @@ Routing functionality for JetBrains Compose with back stack:
 - Can be integrated with automatic scoped `savedInstanceState` persistence
 - Supports routing based on deep links (POC impl)
 
-Tested with JetBrains Compose version **0.4.0-build184**
+Tested with JetBrains Compose version **0.4.0-build190**
 
 ## Sample apps
 

@@ -1,0 +1,139 @@
+name: Build & test
+
+on:
+  push:
+    branches:
+      - main
+      - snapshot
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    # Skip build if head commit contains 'skip ci'
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TERM: dumb
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Copy CI gradle.properties
+        run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+
+      - name: set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Decrypt secrets
+        run: release/signing-setup.sh ${{ secrets.ENCRYPT_KEY }}
+
+      - name: Build
+        uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: assemble --scan
+          wrapper-cache-enabled: true
+          dependencies-cache-enabled: true
+          configuration-cache-enabled: true
+
+      - name: Clean secrets
+        if: always()
+        run: release/signing-cleanup.sh
+
+  test:
+    runs-on: macOS-latest
+    needs: build
+    timeout-minutes: 60
+
+    env:
+      TERM: dumb
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Copy CI gradle.properties
+        run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+
+      - name: set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Decrypt secrets
+        run: release/signing-setup.sh ${{ secrets.ENCRYPT_KEY }}
+
+      - name: Run tests
+        uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: test --scan
+          wrapper-cache-enabled: true
+          dependencies-cache-enabled: true
+          configuration-cache-enabled: true
+
+      - name: Clean secrets
+        if: always()
+        run: release/signing-cleanup.sh
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: "**/build/outputs/*/connected/*.xml"
+
+  deploy:
+    if: github.event_name == 'push' # only deploy for pushed commits (not PRs)
+
+    runs-on: ubuntu-latest
+    needs: [build, test]
+    timeout-minutes: 30
+    env:
+      TERM: dumb
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Copy CI gradle.properties
+        run: mkdir -p ~/.gradle ; cp .github/ci-gradle.properties ~/.gradle/gradle.properties
+
+      - name: set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Decrypt secrets
+        run: release/signing-setup.sh ${{ secrets.ENCRYPT_KEY }}
+
+      - name: Build docs
+        uses: eskatos/gradle-command-action@v1
+        with:
+          # We manually run assemble before publish. If we only run uploadArchives,
+          # the assemble task is run interleaved on each module, which can cause
+          # connection timeouts to Sonatype (since we need to wait for assemble to finish).
+          # By front-loading the assemble task, the upload below is much quicker.
+          arguments: assemble
+          wrapper-cache-enabled: true
+          dependencies-cache-enabled: true
+          configuration-cache-enabled: true
+
+      - name: Deploy to Sonatype
+        uses: eskatos/gradle-command-action@v1
+        with:
+          arguments: publish --no-parallel
+          wrapper-cache-enabled: true
+          dependencies-cache-enabled: true
+          configuration-cache-enabled: true
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.SONATYPE_NEXUS_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.SONATYPE_NEXUS_PASSWORD }}
+
+      - name: Clean secrets
+        if: always()
+        run: release/signing-cleanup.sh

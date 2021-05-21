@@ -23,7 +23,7 @@ Tested with JetBrains Compose version **0.4.0-build190**
 
 ## Sample app
 
-**TachideskJUI** - [manga-reader](https://github.com/Suwayomi/TachideskJUI/) — Built with `compose-router`, adding proper screen history functionality.
+**TachideskJUI** - [manga-reader](https://github.com/Suwayomi/TachideskJUI/) — Built with `compose-router`, adding proper screen history and state persistence functionality.
 
 ## Download
 
@@ -123,21 +123,21 @@ Router can automatically add scoped Bundle support for your client code.
 Minimal setup:
 
 ```kotlin
-class MainActivity : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContent {
-            MaterialTheme {
-                BundleScope(savedInstanceState) {
+fun main() {
+    SwingUtilities.invokeLater {
+        val window = AppWindow(
+            title = "App name"
+        )
+
+        val rootBundle = Bundle()
+
+        window.show {
+            MaterialDesktopTheme {
+                BundleScope(rootBundle) {
                     // Your root composable goes here
                 }
             }
         }
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.saveLocal()
     }
 }
 ```
